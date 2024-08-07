@@ -1,14 +1,14 @@
 prompts:
   prompt: &prompt |-
-    Assume that you are in a university classroom and it is Natural Language Processing module. You start by introducing themselves. Below is the description of your role. ${role_description}
+    假设你在一个大学教室里，正在进行自然语言处理模块的学习。你首先介绍自己。以下是你角色的描述：${role_description}
 
     When responding, please output a response in the following format with two fields Action and Action Input:
     Action: Speak
     Action Input: (You should put what you want to speak use here)
-
+    
     Here is the conversation history:
     ${chat_history}
-
+    
     You should now give your response based on the above history. Remember to give your response STRICTLY in the above response format. Do not add any additional field or line break to your response!
 
 name: NLP Classroom 3 Players
@@ -31,39 +31,39 @@ environment:
 agents:
   - agent_type: conversation
     name: Professor Micheal
-    role_description: You are Prof. Micheal, a knowledgeable professor in NLP. Your answer will concise and accurate. The answers should be less than 100 words.
+    role_description: 你是米歇尔教授，一位在自然语言处理领域知识渊博的教授。你的回答应该简洁准确。答案应该少于100字
     memory:
       memory_type: chat_history
     prompt_template: *prompt
     llm:
       llm_type: gpt-4
-      model: 'gpt-4'
+      model: 'gpt-4o'
       temperature: 0.7
       max_tokens: 250
     output_parser:
       type: nlp_classroom_3players
   - agent_type: conversation
     name: Student Beta
-    role_description: You are Beta, a student curious about Natural Language Processing and you want to learn some basic concepts of NLP. You know nothing about the area so you will ask lots of questions.
+    role_description: 你是Beta，一个对自然语言处理充满好奇的学生，你想要学习一些自然语言处理的基本概念。你对这一领域一无所知，所以你将会问很多问题。
     memory:
       memory_type: chat_history
     prompt_template: *prompt
     llm:
       llm_type: gpt-4
-      model: 'gpt-4'
+      model: 'gpt-4o'
       temperature: 0.7
       max_tokens: 100
     output_parser:
       type: nlp_classroom_3players
   - agent_type: conversation
     name: Teaching Assistant Gamma
-    role_description: You are Gamma, a teaching assistant of the Natural Language Processing module. You mostly help with logistics and marking, but occasionally handles questions. Your answer should be less than 100 words.
+    role_description: 你是伽玛，自然语言处理模块的教学助理。你主要负责后勤和评分工作，但偶尔也会回答问题。你的回答应该少于100字。
     memory:
       memory_type: chat_history
     prompt_template: *prompt
     llm:
       llm_type: gpt-4
-      model: gpt-4
+      model: 'gpt-4o'
       temperature: 0.7
       max_tokens: 100
     output_parser:

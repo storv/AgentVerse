@@ -22,6 +22,8 @@ from .base import BaseChatModel, BaseModelArgs
 from .utils.jsonrepair import JsonRepair
 from .utils.llm_server_utils import get_llm_server_modelname
 
+DEFAULT_CLIENT = None
+DEFAULT_CLIENT_ASYNC = None
 try:
     from openai import OpenAI, AsyncOpenAI
     from openai import OpenAIError
@@ -41,7 +43,7 @@ else:
     AZURE_API_BASE = os.environ.get("AZURE_OPENAI_API_BASE")
     VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL")
     VLLM_API_KEY = os.environ.get("VLLM_API_KEY", "EMPTY")
-    
+
     if not OPENAI_API_KEY and not AZURE_API_KEY:
         logger.warn(
             "OpenAI API key is not set. Please set an environment variable OPENAI_API_KEY or "
@@ -77,15 +79,15 @@ else:
             }
             logger.info(f"Using vLLM model: {hf_model_name}")
     if hf_model_name := get_llm_server_modelname(
-        "http://localhost:5000", logger=logger
+            "http://127.0.0.1:11434", logger=logger
     ):
         # meta-llama/Llama-2-7b-chat-hf
         # transform to llama-2-7b-chat-hf
-        short_model_name = model_name.split("/")[-1].lower()
+        short_model_name = hf_model_name.split("/")[-1].lower()
         LOCAL_LLMS.append(short_model_name)
         LOCAL_LLMS_MAPPING[short_model_name] = {
             "hf_model_name": hf_model_name,
-            "base_url": "http://localhost:5000/v1",
+            "base_url": "http://127.0.0.1:11434/v1",
             "api_key": "EMPTY",
         }
 
@@ -209,12 +211,12 @@ class OpenAIChat(BaseChatModel):
     #         exception_types=(OpenAIError, json.decoder.JSONDecodeError, Exception)
     #     ),
     # )
-    def generate_response(
-        self,
-        prepend_prompt: str = "",
-        history: List[dict] = [],
-        append_prompt: str = "",
-        functions: List[dict] = [],
+    async def generate_response(
+            self,
+            prepend_prompt: str = "",
+            history: List[dict] = [],
+            append_prompt: str = "",
+            functions: List[dict] = [],
     ) -> LLMResult:
         messages = self.construct_messages(prepend_prompt, history, append_prompt)
         logger.log_prompt(messages)
@@ -232,7 +234,7 @@ class OpenAIChat(BaseChatModel):
         try:
             # Execute function call
             if functions != []:
-                async with async_openai_client:   
+                async with async_openai_client:
                     response = openai_client.chat.completions.create(
                         messages=messages,
                         functions=functions,
@@ -276,7 +278,7 @@ class OpenAIChat(BaseChatModel):
                     )
 
             else:
-                async with async_openai_client:   
+                async with async_openai_client:
                     response = openai_client.chat.completions.create(
                         messages=messages,
                         **self.args.dict(),
@@ -308,11 +310,11 @@ class OpenAIChat(BaseChatModel):
     #     ),
     # )
     async def agenerate_response(
-        self,
-        prepend_prompt: str = "",
-        history: List[dict] = [],
-        append_prompt: str = "",
-        functions: List[dict] = [],
+            self,
+            prepend_prompt: str = "",
+            history: List[dict] = [],
+            append_prompt: str = "",
+            functions: List[dict] = [],
     ) -> LLMResult:
         messages = self.construct_messages(prepend_prompt, history, append_prompt)
         logger.log_prompt(messages)
@@ -434,7 +436,7 @@ class OpenAIChat(BaseChatModel):
             raise
 
     def construct_messages(
-        self, prepend_prompt: str, history: List[dict], append_prompt: str
+            self, prepend_prompt: str, history: List[dict], append_prompt: str
     ):
         messages = []
         if prepend_prompt != "":
@@ -485,8 +487,8 @@ class OpenAIChat(BaseChatModel):
             raise ValueError(f"Model type {model} not supported")
 
         return (
-            self.total_prompt_tokens * input_cost_map[model] / 1000.0
-            + self.total_completion_tokens * output_cost_map[model] / 1000.0
+                self.total_prompt_tokens * input_cost_map[model] / 1000.0
+                + self.total_completion_tokens * output_cost_map[model] / 1000.0
         )
 
 
